@@ -1,0 +1,57 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { records } from "../../lib/data";
+
+export const getStaticPaths = () =>
+  records.map((record) => ({
+    params: { id: record.id },
+    props: { record }
+  }));
+
+const { record } = Astro.props;
+---
+
+<BaseLayout title={`${record.name} | NCT 数据档案`}>
+  <a href={import.meta.env.BASE_URL} class="back-link">返回总览</a>
+  <article class="detail">
+    <header>
+      <p class="kicker">Institution Profile</p>
+      <h1>{record.name || "未命名机构"}</h1>
+      <p>{record.province} {record.prov}</p>
+    </header>
+
+    <section>
+      <h2>地址与坐标</h2>
+      <p>{record.addr || "暂无地址信息"}</p>
+      <p>纬度：{record.lat} / 经度：{record.lng}</p>
+    </section>
+
+    <section>
+      <h2>联系信息</h2>
+      <pre>{record.contact || "暂无联系信息"}</pre>
+    </section>
+
+    <section>
+      <h2>举报或争议摘要</h2>
+      <pre>{record.scandal || "暂无公开摘要"}</pre>
+    </section>
+
+    <section>
+      <h2>经历描述</h2>
+      <pre>{record.experience || "暂无经历描述"}</pre>
+    </section>
+
+    <section>
+      <h2>补充字段</h2>
+      <ul>
+        <li>负责人：{record.HMaster || "未知"}</li>
+        <li>信息来源类型：{record.inputType || "未标注"}</li>
+        <li>开始日期：{record.dateStart || "未标注"}</li>
+        <li>结束日期：{record.dateEnd || "未标注"}</li>
+        <li>城市：{record.city || "未标注"}</li>
+        <li>县区：{record.county || "未标注"}</li>
+        <li>其它：{record.else || "无"}</li>
+      </ul>
+    </section>
+  </article>
+</BaseLayout>

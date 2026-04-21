@@ -1,0 +1,91 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { meta, provinceOptions, records } from "../lib/data";
+
+const visibleRows = records.slice(0, 955);
+const baseUrl = import.meta.env.BASE_URL;
+---
+
+<BaseLayout
+  title="NCT 数据档案重建"
+  description="全国矫正机构数据存档，含机构地址、联系方式与举报文字记录。"
+>
+  <section class="hero">
+    <p class="kicker">Archive Rebuild</p>
+    <h1>全国矫正机构资料档案</h1>
+    <p class="hero-text">
+      此页面用于保存和公开历史记录，避免原网站下线后数据丢失。请谨慎核验并保护个人隐私。
+    </p>
+  </section>
+
+  <section class="metrics">
+    <article>
+      <h2>当前可见记录</h2>
+      <p>{visibleRows.length}</p>
+    </article>
+  </section>
+
+  <section class="toolbar">
+    <label for="search">搜索机构名、地址或描述</label>
+    <input id="search" type="search" placeholder="例如：湖南 / 青少年 / 体罚" />
+
+    <label for="province">按省份筛选</label>
+    <select id="province">
+      <option value="">全部省份</option>
+      {provinceOptions.map((province) => <option value={province}>{province}</option>)}
+    </select>
+
+    <p class="result-count" id="resultCount"></p>
+  </section>
+
+  <section class="cards" id="cards">
+    {visibleRows.map((row) => (
+      <article
+        class="card"
+        data-province={row.province}
+        data-search={`${row.name} ${row.addr} ${row.prov} ${row.scandal} ${row.experience}`.toLowerCase()}
+      >
+        <h3>
+          <a href={`${baseUrl}institution/${row.id}/`}>{row.name || "未命名机构"}</a>
+        </h3>
+        <p class="meta-line">{row.province} {row.prov}</p>
+        <p>{row.addr || "暂无地址"}</p>
+        {row.scandal && <p class="tag danger">举报摘要：{row.scandal.slice(0, 80)}...</p>}
+        {!row.scandal && <p class="tag neutral">暂无公开举报摘要</p>}
+      </article>
+    ))}
+  </section>
+
+  <footer class="footnote">
+    <p>最后同步时间（UTC）：{meta.lastSynced}</p>
+  </footer>
+
+  <script type="module">
+    const searchInput = document.querySelector("#search");
+    const provinceSelect = document.querySelector("#province");
+    const cards = Array.from(document.querySelectorAll(".card"));
+    const resultCount = document.querySelector("#resultCount");
+
+    const apply = () => {
+      const q = (searchInput?.value || "").trim().toLowerCase();
+      const province = provinceSelect?.value || "";
+      let count = 0;
+
+      cards.forEach((card) => {
+        const matchesSearch = q ? card.dataset.search?.includes(q) : true;
+        const matchesProvince = province ? card.dataset.province === province : true;
+        const visible = Boolean(matchesSearch && matchesProvince);
+        card.style.display = visible ? "grid" : "none";
+        if (visible) count += 1;
+      });
+
+      if (resultCount) {
+        resultCount.textContent = `当前筛选结果：${count} 条`;
+      }
+    };
+
+    searchInput?.addEventListener("input", apply);
+    provinceSelect?.addEventListener("change", apply);
+    apply();
+  </script>
+</BaseLayout>
